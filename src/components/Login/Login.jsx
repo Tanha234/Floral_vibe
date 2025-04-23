@@ -7,8 +7,7 @@ import {
   updateProfile,
   sendEmailVerification,
 } from 'firebase/auth';
-
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // ✅ added useLocation
 import auth from '../firebase/firebase.init';
 
 function Login() {
@@ -19,6 +18,8 @@ function Login() {
   const [password, setPassword] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ get the location object
+  const from = location.state?.from?.pathname || "/"; // ✅ determine where to redirect after login
 
   const toggleForm = () => setIsSignup(!isSignup);
   const provider = new GoogleAuthProvider();
@@ -26,7 +27,7 @@ function Login() {
   const handleGoogleSignin = async () => {
     try {
       await signInWithPopup(auth, provider);
-      navigate('/');
+      navigate(from, { replace: true }); // ✅ redirect after Google login
     } catch (err) {
       alert(err.message);
     }
@@ -43,22 +44,17 @@ function Login() {
       if (isSignup) {
         const result = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(result.user, { displayName: name });
-
-        // Send Email Verification
         await sendEmailVerification(result.user);
 
         alert("Registration successful! A verification email has been sent.");
-        navigate('/');
+        navigate('/'); // ✅ after signup, send to homepage or wherever you want
       } else {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-
-        // Check if email is verified
         if (!userCredential.user.emailVerified) {
           alert("Please verify your email before logging in.");
           return;
         }
-
-        navigate('/');
+        navigate(from, { replace: true }); // ✅ redirect to intended page
       }
     } catch (err) {
       alert(err.message);

@@ -1,21 +1,15 @@
-import React from 'react';
-import { Route, Redirect } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+// components/firebase/PrivateRoute.jsx
+import React from "react";
+import { Navigate, useLocation } from "react-router-dom";
 
-const PrivateRoute = ({ component: Component, restrictedRoles, ...rest }) => {
-  const { user, loading } = useAuth();
+const PrivateRoute = ({ children, user }) => {
+  const location = useLocation();
 
-  // If the user is loading or not authenticated, return a loading screen or redirect
-  if (loading) {
-    return <div>Loading...</div>;
+  if (!user) {
+    return <Navigate to="/signin" state={{ from: location }} replace />;
   }
 
-  // If user is not logged in or doesn't have access based on roles
-  if (!user || (restrictedRoles && restrictedRoles.includes(user.role))) {
-    return <Redirect to="/login" />;
-  }
-
-  return <Route {...rest} render={(props) => <Component {...props} />} />;
+  return children;
 };
 
 export default PrivateRoute;
